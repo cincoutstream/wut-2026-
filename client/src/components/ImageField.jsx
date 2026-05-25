@@ -1,29 +1,7 @@
 import { InboxOutlined, LinkOutlined } from "@ant-design/icons";
 import { Button, Image as AntImage, Input, Segmented, Space, Typography, Upload, message } from "antd";
 import { useEffect, useState } from "react";
-
-function compressImage(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const image = new window.Image();
-      image.onload = () => {
-        const maxWidth = 1200;
-        const scale = Math.min(1, maxWidth / image.width);
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(image.width * scale);
-        canvas.height = Math.round(image.height * scale);
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", 0.82));
-      };
-      image.onerror = reject;
-      image.src = reader.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+import { compressImage } from "../utils/image";
 
 export default function ImageField({ value, onChange }) {
   const [mode, setMode] = useState("upload");

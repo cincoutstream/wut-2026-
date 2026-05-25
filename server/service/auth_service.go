@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 
 	"campus-second-hand/server/database"
 	"campus-second-hand/server/model"
@@ -10,6 +11,8 @@ import (
 )
 
 func Register(req request.RegisterRequest) (*model.User, error) {
+	req.Phone = strings.TrimSpace(req.Phone)
+
 	var existing model.User
 	if err := database.DB.Where("username = ?", req.Username).First(&existing).Error; err == nil {
 		return nil, errors.New("用户名已存在")

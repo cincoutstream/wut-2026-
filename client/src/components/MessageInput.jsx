@@ -1,5 +1,6 @@
 import { Button, Form, Input, Space } from "antd";
 import { useState } from "react";
+import MessageImageField from "./MessageImageField";
 
 export default function MessageInput({
   onSubmit,
@@ -35,6 +36,9 @@ export default function MessageInput({
           placeholder={placeholder}
           showCount
         />
+      </Form.Item>
+      <Form.Item name="imageUrl" style={{ marginBottom: compact ? 10 : 14 }}>
+        <MessageImageField />
       </Form.Item>
       <Space>
         <Button type="primary" htmlType="submit" loading={submitting}>

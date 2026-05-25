@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 
 	"campus-second-hand/server/database"
 	"campus-second-hand/server/model"
@@ -23,7 +24,7 @@ func UpdateProfile(userID uint, req request.UpdateProfileRequest) (*model.User, 
 	}
 
 	user.Nickname = req.Nickname
-	user.Phone = req.Phone
+	user.Phone = strings.TrimSpace(req.Phone)
 	user.Avatar = req.Avatar
 
 	if err := database.DB.Save(user).Error; err != nil {

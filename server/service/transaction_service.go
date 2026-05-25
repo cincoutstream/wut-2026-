@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 
 	"campus-second-hand/server/database"
 	"campus-second-hand/server/model"
@@ -11,6 +12,11 @@ import (
 )
 
 func CreateTransaction(userID, productID uint, req request.CreateTransactionRequest) (*model.Transaction, error) {
+	req.Remark = strings.TrimSpace(req.Remark)
+	if req.Remark == "" {
+		return nil, errors.New("请填写交易时间、地点或联系方式说明")
+	}
+
 	product, err := GetProductByID(productID)
 	if err != nil {
 		return nil, err
@@ -20,6 +26,14 @@ func CreateTransaction(userID, productID uint, req request.CreateTransactionRequ
 	}
 	if product.Status != model.ProductStatusAvailable {
 		return nil, errors.New("当前商品不可交易")
+	}
+
+	buyer, err := GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(buyer.Phone) == "" {
+		return nil, errors.New("请先在个人信息填写手机号，方便卖家联系你")
 	}
 
 	var existing model.Transaction

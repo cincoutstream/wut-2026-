@@ -20,7 +20,7 @@ func (m *MessageController) Create(c *gin.Context) {
 		response.Fail(c, 400, err.Error())
 		return
 	}
-	message, err := service.CreateMessage(userID, uint(productID), req.Content, nil)
+	message, err := service.CreateMessage(userID, uint(productID), req, nil)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return
@@ -38,7 +38,7 @@ func (m *MessageController) Reply(c *gin.Context) {
 		return
 	}
 	parentID := uint(messageID)
-	message, err := service.CreateMessage(userID, uint(productID), req.Content, &parentID)
+	message, err := service.CreateMessage(userID, uint(productID), req, &parentID)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return

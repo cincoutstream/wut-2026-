@@ -9,6 +9,7 @@ type Message struct {
 	User      User      `json:"user"`
 	ParentID  *uint     `json:"parentId" gorm:"index"`
 	Content   string    `json:"content" gorm:"type:text;not null"`
+	ImageURL  string    `json:"imageUrl" gorm:"type:longtext"`
 	IsDeleted bool      `json:"isDeleted" gorm:"default:false"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`

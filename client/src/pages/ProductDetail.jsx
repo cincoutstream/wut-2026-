@@ -5,6 +5,7 @@ import {
   Col,
   Descriptions,
   Empty,
+  Form,
   Input,
   Modal,
   Rate,
@@ -49,9 +50,9 @@ export default function ProductDetail() {
   const [messagesData, setMessagesData] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [sellerReviewSummary, setSellerReviewSummary] = useState(null);
+  const [transactionForm] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [remarkOpen, setRemarkOpen] = useState(false);
-  const [remarkValue, setRemarkValue] = useState("");
   const [transactionSubmitting, setTransactionSubmitting] = useState(false);
 
   const loadProduct = async () => {
@@ -195,7 +196,14 @@ export default function ProductDetail() {
                     type="primary"
                     size="large"
                     icon={<ShoppingCartOutlined />}
-                    onClick={() => setRemarkOpen(true)}
+                    onClick={() => {
+                      if (!currentUser?.phone?.trim()) {
+                        message.warning("请先在个人信息中填写手机号，方便卖家联系你");
+                        navigate("/profile");
+                        return;
+                      }
+                      setRemarkOpen(true);
+                    }}
                   >
                     发起交易申请
                   </Button>
@@ -301,15 +309,17 @@ export default function ProductDetail() {
         onCancel={() => {
           if (!transactionSubmitting) {
             setRemarkOpen(false);
+            transactionForm.resetFields();
           }
         }}
         confirmLoading={transactionSubmitting}
         onOk={async () => {
           setTransactionSubmitting(true);
           try {
-            await createTransaction(id, { remark: remarkValue });
+            const values = await transactionForm.validateFields();
+            await createTransaction(id, { remark: values.remark.trim() });
             message.success("交易申请已发送");
-            setRemarkValue("");
+            transactionForm.resetFields();
             setRemarkOpen(false);
           } finally {
             setTransactionSubmitting(false);
@@ -317,16 +327,25 @@ export default function ProductDetail() {
         }}
       >
         <Typography.Paragraph>
-          可以补充见面时间、交易地点或其他说明，方便卖家尽快确认。
+          请填写见面时间、交易地点和补充说明，卖家会根据这些信息确认交易。
         </Typography.Paragraph>
-        <Input.TextArea
-          value={remarkValue}
-          onChange={(e) => setRemarkValue(e.target.value)}
-          rows={4}
-          maxLength={500}
-          showCount
-          placeholder="例如：今晚 7 点教学楼门口可以面交"
-        />
+        <Form form={transactionForm} layout="vertical">
+          <Form.Item
+            label="交易说明"
+            name="remark"
+            rules={[
+              { required: true, whitespace: true, message: "请填写交易时间、地点或联系方式说明" },
+              { max: 500, message: "交易说明不能超过 500 字" },
+            ]}
+          >
+            <Input.TextArea
+              rows={4}
+              maxLength={500}
+              showCount
+              placeholder="例如：今晚 7 点教学楼门口可以面交，我的手机号可以直接联系"
+            />
+          </Form.Item>
+        </Form>
       </Modal>
     </Space>
   );

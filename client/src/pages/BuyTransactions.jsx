@@ -1,7 +1,15 @@
-import { Button, Card, Empty, List, Space, Tag, Typography } from "antd";
+import { Button, Card, Descriptions, Empty, List, Space, Tag, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getBuyTransactions } from "../api/transaction";
+
+const statusMap = {
+  pending: { color: "gold", text: "待处理" },
+  accepted: { color: "blue", text: "卖家已接受" },
+  rejected: { color: "red", text: "已拒绝" },
+  completed: { color: "green", text: "已完成" },
+  cancelled: { color: "default", text: "已取消" },
+};
 
 export default function BuyTransactions() {
   const [transactions, setTransactions] = useState([]);
@@ -20,31 +28,46 @@ export default function BuyTransactions() {
       ) : (
         <List
           dataSource={transactions}
-          renderItem={(item) => (
-            <List.Item
-              actions={[
-                <Link key="detail" to={`/products/${item.product?.id}`}>
-                  查看商品
-                </Link>,
-                item.status === "completed" ? (
-                  <Button key="review" type="link">
-                    <Link to={`/transactions/${item.id}/review`}>去评价</Link>
-                  </Button>
-                ) : null,
-              ]}
-            >
-              <Space direction="vertical">
-                <Typography.Text strong>{item.product?.title}</Typography.Text>
-                <Space>
-                  <Typography.Text>卖家：{item.seller?.nickname || item.seller?.username}</Typography.Text>
-                  <Tag color={item.status === "pending" ? "gold" : item.status === "completed" ? "green" : "default"}>
-                    {item.status}
-                  </Tag>
+          renderItem={(item) => {
+            const status = statusMap[item.status] || statusMap.pending;
+
+            return (
+              <List.Item
+                actions={[
+                  <Link key="detail" to={`/products/${item.product?.id}`}>
+                    查看商品
+                  </Link>,
+                  item.status === "completed" ? (
+                    <Button key="review" type="link">
+                      <Link to={`/transactions/${item.id}/review`}>去评价</Link>
+                    </Button>
+                  ) : null,
+                ]}
+              >
+                <Space direction="vertical" size={10} style={{ width: "100%" }}>
+                  <Typography.Text strong>{item.product?.title}</Typography.Text>
+                  <Space wrap>
+                    <Tag color={status.color}>{status.text}</Tag>
+                  </Space>
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="卖家">
+                      {item.seller?.nickname || item.seller?.username}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="卖家手机号">
+                      {item.seller?.phone ? (
+                        <Typography.Text copyable>{item.seller.phone}</Typography.Text>
+                      ) : (
+                        <Typography.Text type="secondary">卖家暂未填写</Typography.Text>
+                      )}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="我的交易说明">
+                      {item.remark || "无备注"}
+                    </Descriptions.Item>
+                  </Descriptions>
                 </Space>
-                <Typography.Text type="secondary">{item.remark || "无备注"}</Typography.Text>
-              </Space>
-            </List.Item>
-          )}
+              </List.Item>
+            );
+          }}
         />
       )}
     </Card>

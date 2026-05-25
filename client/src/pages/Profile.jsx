@@ -35,7 +35,14 @@ export default function Profile() {
           <Form.Item label="昵称" name="nickname">
             <Input />
           </Form.Item>
-          <Form.Item label="手机号" name="phone">
+          <Form.Item
+            label="手机号"
+            name="phone"
+            rules={[
+              { required: true, message: "请输入手机号" },
+              { pattern: /^1\d{10}$/, message: "请输入 11 位手机号" },
+            ]}
+          >
             <Input />
           </Form.Item>
           <Form.Item label="头像地址" name="avatar">

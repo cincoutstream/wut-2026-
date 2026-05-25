@@ -2,9 +2,11 @@ package service
 
 import (
 	"errors"
+	"strings"
 
 	"campus-second-hand/server/database"
 	"campus-second-hand/server/model"
+	"campus-second-hand/server/request"
 
 	"gorm.io/gorm"
 )
@@ -16,14 +18,19 @@ type MessageTree struct {
 	User      model.User    `json:"user"`
 	ParentID  *uint         `json:"parentId"`
 	Content   string        `json:"content"`
+	ImageURL  string        `json:"imageUrl"`
 	IsDeleted bool          `json:"isDeleted"`
 	CreatedAt interface{}   `json:"createdAt"`
 	Replies   []MessageTree `json:"replies"`
 }
 
-func CreateMessage(userID, productID uint, content string, parentID *uint) (*model.Message, error) {
+func CreateMessage(userID, productID uint, req request.CreateMessageRequest, parentID *uint) (*model.Message, error) {
 	if _, err := GetProductByID(productID); err != nil {
 		return nil, err
+	}
+	content := strings.TrimSpace(req.Content)
+	if content == "" {
+		return nil, errors.New("请输入留言内容")
 	}
 
 	if parentID != nil {
@@ -38,6 +45,7 @@ func CreateMessage(userID, productID uint, content string, parentID *uint) (*mod
 		UserID:    userID,
 		ParentID:  parentID,
 		Content:   content,
+		ImageURL:  req.ImageURL,
 	}
 	if err := database.DB.Create(message).Error; err != nil {
 		return nil, err
@@ -80,6 +88,7 @@ func ListMessages(productID uint) ([]MessageTree, error) {
 				User:      msg.User,
 				ParentID:  msg.ParentID,
 				Content:   msg.Content,
+				ImageURL:  msg.ImageURL,
 				IsDeleted: msg.IsDeleted,
 				CreatedAt: msg.CreatedAt,
 				Replies:   []MessageTree{},
@@ -131,5 +140,6 @@ func DeleteMessage(userID, messageID uint) error {
 	return database.DB.Model(&model.Message{}).Where("id = ?", messageID).Updates(map[string]interface{}{
 		"is_deleted": true,
 		"content":    "该留言已删除",
+		"image_url":  "",
 	}).Error
 }

@@ -10,6 +10,7 @@ import {
   Card,
   Divider,
   Empty,
+  Image,
   Popconfirm,
   Space,
   Tag,
@@ -91,6 +92,14 @@ function MessageItem({ item, level = 0, onReply, onDelete }) {
           <Typography.Paragraph style={{ marginBottom: 0, whiteSpace: "pre-wrap" }}>
             {item.content}
           </Typography.Paragraph>
+          {item.imageUrl ? (
+            <Image
+              src={item.imageUrl}
+              alt="留言图片"
+              width={220}
+              style={{ borderRadius: 8, objectFit: "cover" }}
+            />
+          ) : null}
 
           {replying ? (
             <div
