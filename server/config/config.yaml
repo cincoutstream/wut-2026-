@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  username: root
+  password: kkiygf123
+  database: campus_second_hand
+  charset: utf8mb4
+  driver: sqlite
+  path: campus_second_hand.db
+
+jwt:
+  secret: campus_second_hand_secret
+  expire_hours: 24

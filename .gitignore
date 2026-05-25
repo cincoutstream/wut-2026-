@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+client/node_modules/
+
+# Build output
+dist/
+client/dist/
+
+# Local tooling caches
+client/.playwright-cli/
+
+# Local databases and logs
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
