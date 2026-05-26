@@ -31,9 +31,6 @@ export default function ProductCreate() {
         <Typography.Title level={2} style={{ margin: 0 }}>
           发布商品
         </Typography.Title>
-        <Typography.Text type="secondary">
-          支持本地上传图片、即时预览和提交前压缩，更适合作业演示。
-        </Typography.Text>
         <Form
           form={form}
           layout="vertical"

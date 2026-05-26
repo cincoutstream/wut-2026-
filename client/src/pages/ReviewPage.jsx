@@ -1,6 +1,7 @@
 import { Button, Card, Form, Input, Rate, Space, Typography, message } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import { createReview } from "../api/review";
+import MessageImageField from "../components/MessageImageField";
 
 export default function ReviewPage() {
   const { id } = useParams();
@@ -27,6 +28,9 @@ export default function ReviewPage() {
           </Form.Item>
           <Form.Item label="评价内容" name="content" rules={[{ required: true, message: "请输入评价内容" }]}>
             <Input.TextArea rows={5} maxLength={500} />
+          </Form.Item>
+          <Form.Item label="评价图片" name="imageUrl">
+            <MessageImageField />
           </Form.Item>
           <Button type="primary" htmlType="submit">
             提交评价

@@ -24,7 +24,7 @@ func (u *UserController) UpdateProfile(c *gin.Context) {
 	userID := c.GetUint("userID")
 	var req request.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, 400, err.Error())
+		response.Fail(c, 400, response.ValidationMessage(err))
 		return
 	}
 	user, err := service.UpdateProfile(userID, req)

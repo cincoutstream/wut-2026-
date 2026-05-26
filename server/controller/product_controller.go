@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"strconv"
-
 	"campus-second-hand/server/request"
 	"campus-second-hand/server/response"
 	"campus-second-hand/server/service"
@@ -16,7 +14,7 @@ func (p *ProductController) Create(c *gin.Context) {
 	userID := c.GetUint("userID")
 	var req request.CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, 400, err.Error())
+		response.Fail(c, 400, response.ValidationMessage(err))
 		return
 	}
 	product, err := service.CreateProduct(userID, req)
@@ -29,13 +27,16 @@ func (p *ProductController) Create(c *gin.Context) {
 
 func (p *ProductController) Update(c *gin.Context) {
 	userID := c.GetUint("userID")
-	productID, _ := strconv.Atoi(c.Param("productId"))
-	var req request.UpdateProductRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, 400, err.Error())
+	productID, ok := parsePositiveID(c, "productId")
+	if !ok {
 		return
 	}
-	product, err := service.UpdateProduct(userID, uint(productID), req)
+	var req request.UpdateProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, 400, response.ValidationMessage(err))
+		return
+	}
+	product, err := service.UpdateProduct(userID, productID, req)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return
@@ -44,14 +45,7 @@ func (p *ProductController) Update(c *gin.Context) {
 }
 
 func (p *ProductController) List(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 10
-	}
+	page, pageSize := parsePagination(c)
 
 	data, err := service.ListProducts(c.Query("keyword"), c.Query("category"), c.Query("status"), page, pageSize)
 	if err != nil {
@@ -62,8 +56,11 @@ func (p *ProductController) List(c *gin.Context) {
 }
 
 func (p *ProductController) Detail(c *gin.Context) {
-	productID, _ := strconv.Atoi(c.Param("productId"))
-	product, err := service.GetProductByID(uint(productID))
+	productID, ok := parsePositiveID(c, "productId")
+	if !ok {
+		return
+	}
+	product, err := service.GetProductByID(productID)
 	if err != nil {
 		response.Fail(c, 404, err.Error())
 		return
@@ -83,8 +80,11 @@ func (p *ProductController) MyProducts(c *gin.Context) {
 
 func (p *ProductController) OffShelf(c *gin.Context) {
 	userID := c.GetUint("userID")
-	productID, _ := strconv.Atoi(c.Param("productId"))
-	product, err := service.OffShelfProduct(userID, uint(productID))
+	productID, ok := parsePositiveID(c, "productId")
+	if !ok {
+		return
+	}
+	product, err := service.OffShelfProduct(userID, productID)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return

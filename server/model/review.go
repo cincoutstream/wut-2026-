@@ -14,6 +14,7 @@ type Review struct {
 	TargetUser    User        `json:"targetUser"`
 	Rating        int         `json:"rating" gorm:"not null"`
 	Content       string      `json:"content" gorm:"type:text"`
+	ImageURL      string      `json:"imageUrl" gorm:"type:longtext"`
 	CreatedAt     time.Time   `json:"createdAt"`
 	UpdatedAt     time.Time   `json:"updatedAt"`
 }

@@ -12,6 +12,7 @@ import (
 func Setup(cfg *config.AppConfig) *gin.Engine {
 	r := gin.Default()
 	r.Use(middleware.CORS())
+	r.Use(middleware.RequestMetrics())
 
 	authController := &controller.AuthController{
 		JWTSecret:      cfg.JWT.Secret,

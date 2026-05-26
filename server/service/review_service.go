@@ -46,6 +46,7 @@ func CreateReview(userID, transactionID uint, req request.CreateReviewRequest) (
 		TargetUserID:  targetUserID,
 		Rating:        req.Rating,
 		Content:       req.Content,
+		ImageURL:      req.ImageURL,
 	}
 	if err := database.DB.Create(review).Error; err != nil {
 		return nil, err
@@ -80,6 +81,7 @@ func UpdateReview(userID, reviewID uint, req request.UpdateReviewRequest) (*mode
 	}
 	review.Rating = req.Rating
 	review.Content = req.Content
+	review.ImageURL = req.ImageURL
 	if err := database.DB.Save(review).Error; err != nil {
 		return nil, err
 	}

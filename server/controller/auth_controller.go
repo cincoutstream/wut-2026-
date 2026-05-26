@@ -17,7 +17,7 @@ type AuthController struct {
 func (a *AuthController) Register(c *gin.Context) {
 	var req request.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, 400, err.Error())
+		response.Fail(c, 400, response.ValidationMessage(err))
 		return
 	}
 
@@ -35,7 +35,7 @@ func (a *AuthController) Register(c *gin.Context) {
 func (a *AuthController) Login(c *gin.Context) {
 	var req request.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, 400, err.Error())
+		response.Fail(c, 400, response.ValidationMessage(err))
 		return
 	}
 

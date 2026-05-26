@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"strconv"
-
 	"campus-second-hand/server/request"
 	"campus-second-hand/server/response"
 	"campus-second-hand/server/service"
@@ -14,13 +12,16 @@ type ReviewController struct{}
 
 func (r *ReviewController) Create(c *gin.Context) {
 	userID := c.GetUint("userID")
-	transactionID, _ := strconv.Atoi(c.Param("transactionId"))
-	var req request.CreateReviewRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, 400, err.Error())
+	transactionID, ok := parsePositiveID(c, "transactionId")
+	if !ok {
 		return
 	}
-	review, err := service.CreateReview(userID, uint(transactionID), req)
+	var req request.CreateReviewRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, 400, response.ValidationMessage(err))
+		return
+	}
+	review, err := service.CreateReview(userID, transactionID, req)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return
@@ -29,8 +30,11 @@ func (r *ReviewController) Create(c *gin.Context) {
 }
 
 func (r *ReviewController) ListByProduct(c *gin.Context) {
-	productID, _ := strconv.Atoi(c.Param("productId"))
-	reviews, err := service.ListReviews(uint(productID))
+	productID, ok := parsePositiveID(c, "productId")
+	if !ok {
+		return
+	}
+	reviews, err := service.ListReviews(productID)
 	if err != nil {
 		response.Fail(c, 500, err.Error())
 		return
@@ -39,8 +43,11 @@ func (r *ReviewController) ListByProduct(c *gin.Context) {
 }
 
 func (r *ReviewController) ListByUser(c *gin.Context) {
-	userID, _ := strconv.Atoi(c.Param("userId"))
-	summary, err := service.ListUserReviews(uint(userID))
+	userID, ok := parsePositiveID(c, "userId")
+	if !ok {
+		return
+	}
+	summary, err := service.ListUserReviews(userID)
 	if err != nil {
 		response.Fail(c, 500, err.Error())
 		return
@@ -50,13 +57,16 @@ func (r *ReviewController) ListByUser(c *gin.Context) {
 
 func (r *ReviewController) Update(c *gin.Context) {
 	userID := c.GetUint("userID")
-	reviewID, _ := strconv.Atoi(c.Param("reviewId"))
-	var req request.UpdateReviewRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, 400, err.Error())
+	reviewID, ok := parsePositiveID(c, "reviewId")
+	if !ok {
 		return
 	}
-	review, err := service.UpdateReview(userID, uint(reviewID), req)
+	var req request.UpdateReviewRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, 400, response.ValidationMessage(err))
+		return
+	}
+	review, err := service.UpdateReview(userID, reviewID, req)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return

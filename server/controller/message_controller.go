@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"strconv"
-
 	"campus-second-hand/server/request"
 	"campus-second-hand/server/response"
 	"campus-second-hand/server/service"
@@ -14,13 +12,16 @@ type MessageController struct{}
 
 func (m *MessageController) Create(c *gin.Context) {
 	userID := c.GetUint("userID")
-	productID, _ := strconv.Atoi(c.Param("productId"))
-	var req request.CreateMessageRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, 400, err.Error())
+	productID, ok := parsePositiveID(c, "productId")
+	if !ok {
 		return
 	}
-	message, err := service.CreateMessage(userID, uint(productID), req, nil)
+	var req request.CreateMessageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, 400, response.ValidationMessage(err))
+		return
+	}
+	message, err := service.CreateMessage(userID, productID, req, nil)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return
@@ -30,15 +31,21 @@ func (m *MessageController) Create(c *gin.Context) {
 
 func (m *MessageController) Reply(c *gin.Context) {
 	userID := c.GetUint("userID")
-	productID, _ := strconv.Atoi(c.Param("productId"))
-	messageID, _ := strconv.Atoi(c.Param("messageId"))
-	var req request.CreateMessageRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, 400, err.Error())
+	productID, ok := parsePositiveID(c, "productId")
+	if !ok {
 		return
 	}
-	parentID := uint(messageID)
-	message, err := service.CreateMessage(userID, uint(productID), req, &parentID)
+	messageID, ok := parsePositiveID(c, "messageId")
+	if !ok {
+		return
+	}
+	var req request.CreateMessageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, 400, response.ValidationMessage(err))
+		return
+	}
+	parentID := messageID
+	message, err := service.CreateMessage(userID, productID, req, &parentID)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return
@@ -47,8 +54,11 @@ func (m *MessageController) Reply(c *gin.Context) {
 }
 
 func (m *MessageController) List(c *gin.Context) {
-	productID, _ := strconv.Atoi(c.Param("productId"))
-	messages, err := service.ListMessages(uint(productID))
+	productID, ok := parsePositiveID(c, "productId")
+	if !ok {
+		return
+	}
+	messages, err := service.ListMessages(productID)
 	if err != nil {
 		response.Fail(c, 500, err.Error())
 		return
@@ -58,8 +68,11 @@ func (m *MessageController) List(c *gin.Context) {
 
 func (m *MessageController) Delete(c *gin.Context) {
 	userID := c.GetUint("userID")
-	messageID, _ := strconv.Atoi(c.Param("messageId"))
-	if err := service.DeleteMessage(userID, uint(messageID)); err != nil {
+	messageID, ok := parsePositiveID(c, "messageId")
+	if !ok {
+		return
+	}
+	if err := service.DeleteMessage(userID, messageID); err != nil {
 		response.Fail(c, 400, err.Error())
 		return
 	}

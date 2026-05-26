@@ -1,5 +1,5 @@
 import { PictureOutlined } from "@ant-design/icons";
-import { Button, Image, Space, Upload, message } from "antd";
+import { Button, Image, Upload, message } from "antd";
 import { useState } from "react";
 import { compressImage } from "../utils/image";
 
@@ -30,7 +30,7 @@ export default function MessageImageField({ value, onChange }) {
   };
 
   return (
-    <Space direction="vertical" size={8}>
+    <div className="message-image-field">
       <Upload
         accept="image/*"
         multiple={false}
@@ -38,23 +38,22 @@ export default function MessageImageField({ value, onChange }) {
         beforeUpload={handleFile}
         disabled={uploading}
       >
-        <Button icon={<PictureOutlined />} loading={uploading}>
+        <Button icon={<PictureOutlined />} loading={uploading} className="image-upload-button">
           添加图片
         </Button>
       </Upload>
       {value ? (
-        <Space direction="vertical" size={8}>
+        <div className="message-image-preview">
           <Image
             src={value}
             alt="留言图片预览"
-            width={160}
-            style={{ borderRadius: 8, objectFit: "cover" }}
+            className="message-image-preview-img"
           />
-          <Button size="small" onClick={() => onChange?.("")}>
+          <Button size="small" type="text" onClick={() => onChange?.("")}>
             移除图片
           </Button>
-        </Space>
+        </div>
       ) : null}
-    </Space>
+    </div>
   );
 }

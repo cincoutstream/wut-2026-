@@ -1,7 +1,6 @@
 import {
   Avatar,
   Button,
-  Card,
   Col,
   Descriptions,
   Empty,
@@ -12,12 +11,13 @@ import {
   Row,
   Skeleton,
   Space,
-  Statistic,
   Tag,
   Typography,
   message,
 } from "antd";
 import {
+  CheckCircleOutlined,
+  EnvironmentOutlined,
   MessageOutlined,
   ShoppingCartOutlined,
   StarOutlined,
@@ -41,6 +41,9 @@ const statusMap = {
   sold: { color: "red", text: "已售出" },
   off_shelf: { color: "default", text: "已下架" },
 };
+
+const fallbackImage = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f";
+const tradeSteps = ["填写申请", "卖家确认", "线下面交", "完成评价"];
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -96,145 +99,135 @@ export default function ProductDetail() {
   const sellerCount = sellerReviewSummary?.ratingCount || product.user?.ratingCount || 0;
 
   return (
-    <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Row gutter={[24, 24]}>
-        <Col xs={24} lg={12}>
-          <div
-            className="content-card"
-            style={{
-              minHeight: 420,
-              borderRadius: 24,
-              overflow: "hidden",
-              background: "#fff",
-            }}
-          >
-            <img
-              src={product.imageUrl || "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f"}
-              alt={product.title}
-              style={{ width: "100%", height: 420, objectFit: "cover", display: "block" }}
-            />
+    <div className="detail-page">
+      <section className="detail-hero">
+        <div className="detail-gallery">
+          <div className="detail-image-frame">
+            <img src={product.imageUrl || fallbackImage} alt={product.title} />
+            <Tag className="detail-status" color={status.color}>
+              {status.text}
+            </Tag>
           </div>
-        </Col>
-        <Col xs={24} lg={12}>
-          <Card className="content-card" styles={{ body: { padding: 28 } }}>
-            <Space direction="vertical" size={18} style={{ width: "100%" }}>
-              <Space style={{ justifyContent: "space-between", width: "100%" }} align="start">
-                <Typography.Title level={2} style={{ margin: 0 }}>
-                  {product.title}
-                </Typography.Title>
-                <Tag color={status.color}>{status.text}</Tag>
-              </Space>
+          <div className="detail-mini-summary">
+            <div>
+              <span>分类</span>
+              <strong>{product.category || "未分类"}</strong>
+            </div>
+            <div>
+              <span>留言</span>
+              <strong>{messagesData.length}</strong>
+            </div>
+            <div>
+              <span>评价</span>
+              <strong>{reviews.length}</strong>
+            </div>
+          </div>
+        </div>
 
-              <Typography.Title level={3} style={{ color: "#0f766e", margin: 0 }}>
-                ¥ {product.price}
-              </Typography.Title>
+        <div className="detail-info-panel">
+          <div className="detail-heading">
+            <div>
+              <Typography.Title level={1}>{product.title}</Typography.Title>
+              <Typography.Text className="muted-text">{product.description || "暂无描述"}</Typography.Text>
+            </div>
+            <Typography.Text className="detail-price">¥ {product.price}</Typography.Text>
+          </div>
 
-              <Descriptions column={1} size="middle">
-                <Descriptions.Item label="分类">{product.category || "未分类"}</Descriptions.Item>
-                <Descriptions.Item label="卖家">
+          <div className="seller-panel">
+            <Space align="center">
+              <Avatar src={product.user?.avatar || undefined} size={52} icon={<UserOutlined />} />
+              <Space direction="vertical" size={1}>
+                <Typography.Text strong>
                   {product.user?.nickname || product.user?.username}
-                </Descriptions.Item>
-                <Descriptions.Item label="联系方式">
-                  {product.user?.phone || "暂未填写"}
-                </Descriptions.Item>
-                <Descriptions.Item label="商品描述">
-                  {product.description || "暂无描述"}
-                </Descriptions.Item>
-              </Descriptions>
-
-              <Card
-                size="small"
-                style={{
-                  borderRadius: 18,
-                  background: "linear-gradient(180deg, rgba(250,204,21,0.12), rgba(250,204,21,0.03))",
-                }}
-              >
-                <Space align="start" style={{ justifyContent: "space-between", width: "100%" }}>
-                  <Space align="start">
-                    <Avatar src={product.user?.avatar || undefined} size={48} icon={<UserOutlined />} />
-                    <Space direction="vertical" size={2}>
-                      <Typography.Text strong>
-                        {product.user?.nickname || product.user?.username}
-                      </Typography.Text>
-                      <Typography.Text type="secondary">卖家历史信誉</Typography.Text>
-                    </Space>
-                  </Space>
-                  <Space direction="vertical" align="end" size={2}>
-                    <Rate disabled allowHalf value={sellerAvg} />
-                    <Typography.Text>
-                      {sellerCount ? `${sellerAvg.toFixed(1)} 分 / ${sellerCount} 条评价` : "暂无评价"}
-                    </Typography.Text>
-                  </Space>
-                </Space>
-              </Card>
-
-              <Row gutter={12}>
-                <Col span={8}>
-                  <Card size="small" style={{ borderRadius: 16 }}>
-                    <Statistic title="留言数" value={messagesData.length} prefix={<MessageOutlined />} />
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card size="small" style={{ borderRadius: 16 }}>
-                    <Statistic title="商品评价" value={reviews.length} prefix={<StarOutlined />} />
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card size="small" style={{ borderRadius: 16 }}>
-                    <Statistic
-                      title="卖家口碑"
-                      value={sellerCount ? sellerAvg.toFixed(1) : "暂无"}
-                      prefix={<TrophyOutlined />}
-                    />
-                  </Card>
-                </Col>
-              </Row>
-
-              <Space wrap>
-                {canBuy ? (
-                  <Button
-                    type="primary"
-                    size="large"
-                    icon={<ShoppingCartOutlined />}
-                    onClick={() => {
-                      if (!currentUser?.phone?.trim()) {
-                        message.warning("请先在个人信息中填写手机号，方便卖家联系你");
-                        navigate("/profile");
-                        return;
-                      }
-                      setRemarkOpen(true);
-                    }}
-                  >
-                    发起交易申请
-                  </Button>
-                ) : null}
-                {!isLoggedIn() ? (
-                  <Button size="large" onClick={() => navigate("/login")}>
-                    登录后参与交易和留言
-                  </Button>
-                ) : null}
+                </Typography.Text>
+                <Typography.Text type="secondary">
+                  {product.user?.phone || "暂未填写联系方式"}
+                </Typography.Text>
               </Space>
             </Space>
-          </Card>
-        </Col>
-      </Row>
+            <Space direction="vertical" align="end" size={2}>
+              <Rate disabled allowHalf value={sellerAvg} />
+              <Typography.Text>
+                {sellerCount ? `${sellerAvg.toFixed(1)} 分 / ${sellerCount} 条评价` : "暂无评价"}
+              </Typography.Text>
+            </Space>
+          </div>
 
-      <Row gutter={[24, 24]}>
-        <Col xs={24} xl={14}>
-          <Card
-            className="content-card"
-            title="商品留言"
-            extra={<Typography.Text type="secondary">提问、追问、补充都可以在这里完成</Typography.Text>}
-          >
-            {isLoggedIn() ? (
-              <div
-                style={{
-                  marginBottom: 22,
-                  padding: 18,
-                  borderRadius: 18,
-                  background: "linear-gradient(180deg, rgba(15,118,110,0.06), rgba(15,118,110,0.02))",
+          <div className="detail-stat-strip">
+            <div>
+              <MessageOutlined />
+              <span>留言数</span>
+              <strong>{messagesData.length}</strong>
+            </div>
+            <div>
+              <StarOutlined />
+              <span>商品评价</span>
+              <strong>{reviews.length}</strong>
+            </div>
+            <div>
+              <TrophyOutlined />
+              <span>卖家口碑</span>
+              <strong>{sellerCount ? sellerAvg.toFixed(1) : "暂无"}</strong>
+            </div>
+          </div>
+
+          <div className="trade-flow">
+            <div className="flow-title">
+              <CheckCircleOutlined />
+              <Typography.Text strong>交易流程</Typography.Text>
+            </div>
+            <div className="flow-steps">
+              {tradeSteps.map((step, index) => (
+                <span key={step} className="flow-step">
+                  <span>{index + 1}</span>
+                  {step}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <Descriptions column={1} size="middle" className="detail-descriptions">
+            <Descriptions.Item label="交易说明">
+              {product.status === "available" ? "当前可申请交易，建议在申请中写清面交时间和地点。" : "当前商品不在可交易状态。"}
+            </Descriptions.Item>
+          </Descriptions>
+
+          <Space wrap>
+            {canBuy ? (
+              <Button
+                type="primary"
+                size="large"
+                icon={<ShoppingCartOutlined />}
+                onClick={() => {
+                  if (!currentUser?.phone?.trim()) {
+                    message.warning("请先在个人信息中填写手机号，方便卖家联系你");
+                    navigate("/profile");
+                    return;
+                  }
+                  setRemarkOpen(true);
                 }}
               >
+                发起交易申请
+              </Button>
+            ) : null}
+            {!isLoggedIn() ? (
+              <Button size="large" onClick={() => navigate("/login")}>
+                登录后参与交易和留言
+              </Button>
+            ) : null}
+          </Space>
+        </div>
+      </section>
+
+      <Row gutter={[24, 24]} className="detail-lower">
+        <Col xs={24} xl={14}>
+          <section className="content-card section-card detail-section">
+            <div className="section-title-row">
+              <Typography.Title level={3}>商品留言</Typography.Title>
+              <Typography.Text type="secondary">共 {messagesData.length} 条</Typography.Text>
+            </div>
+            {isLoggedIn() ? (
+              <div className="message-compose">
                 <Typography.Title level={5} style={{ marginTop: 0 }}>
                   发表评论或提问
                 </Typography.Title>
@@ -265,40 +258,36 @@ export default function ProductDetail() {
                 loadProduct();
               }}
             />
-          </Card>
+          </section>
         </Col>
 
         <Col xs={24} xl={10}>
           <Space direction="vertical" size={24} style={{ width: "100%" }}>
-            <Card
-              className="content-card"
-              title="商品成交评价"
-              extra={
-                reviews.length ? (
+            <section className="content-card section-card detail-section">
+              <div className="section-title-row">
+                <Typography.Title level={3}>商品成交评价</Typography.Title>
+                {reviews.length ? (
                   <Space>
                     <Rate disabled allowHalf value={reviewAverage} />
                     <Typography.Text>{reviewAverage.toFixed(1)}</Typography.Text>
                   </Space>
-                ) : null
-              }
-            >
+                ) : null}
+              </div>
               <ReviewList reviews={reviews} />
-            </Card>
+            </section>
 
-            <Card
-              className="content-card"
-              title="卖家历史评价"
-              extra={
-                sellerCount ? (
+            <section className="content-card section-card detail-section">
+              <div className="section-title-row">
+                <Typography.Title level={3}>卖家历史评价</Typography.Title>
+                {sellerCount ? (
                   <Space>
                     <Rate disabled allowHalf value={sellerAvg} />
                     <Typography.Text>{sellerAvg.toFixed(1)}</Typography.Text>
                   </Space>
-                ) : null
-              }
-            >
+                ) : null}
+              </div>
               <ReviewList reviews={sellerReviewSummary?.reviews || []} />
-            </Card>
+            </section>
           </Space>
         </Col>
       </Row>
@@ -326,9 +315,12 @@ export default function ProductDetail() {
           }
         }}
       >
-        <Typography.Paragraph>
-          请填写见面时间、交易地点和补充说明，卖家会根据这些信息确认交易。
-        </Typography.Paragraph>
+        <div className="modal-note">
+          <EnvironmentOutlined />
+          <Typography.Paragraph style={{ margin: 0 }}>
+            请填写见面时间、交易地点和补充说明。你的手机号和交易说明会展示给卖家，方便卖家确认后联系你。
+          </Typography.Paragraph>
+        </div>
         <Form form={transactionForm} layout="vertical">
           <Form.Item
             label="交易说明"
@@ -347,6 +339,6 @@ export default function ProductDetail() {
           </Form.Item>
         </Form>
       </Modal>
-    </Space>
+    </div>
   );
 }

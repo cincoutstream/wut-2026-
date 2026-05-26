@@ -1,4 +1,5 @@
-import { Button, Form, Input, Space } from "antd";
+import { Button, Form, Input } from "antd";
+import { SendOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import MessageImageField from "./MessageImageField";
 
@@ -23,13 +24,19 @@ export default function MessageInput({
   };
 
   return (
-    <Form form={form} onFinish={handleFinish} layout="vertical">
+    <Form
+      form={form}
+      onFinish={handleFinish}
+      layout="vertical"
+      className={`message-input${compact ? " message-input-compact" : ""}`}
+    >
       <Form.Item
         name="content"
-        style={{ marginBottom: compact ? 10 : 14 }}
+        className="message-content-field"
         rules={[{ required: true, message: "请输入内容" }]}
       >
         <Input.TextArea
+          className="message-textarea"
           autoFocus={autoFocus}
           rows={compact ? 2 : 4}
           maxLength={500}
@@ -37,14 +44,20 @@ export default function MessageInput({
           showCount
         />
       </Form.Item>
-      <Form.Item name="imageUrl" style={{ marginBottom: compact ? 10 : 14 }}>
-        <MessageImageField />
-      </Form.Item>
-      <Space>
-        <Button type="primary" htmlType="submit" loading={submitting}>
+      <div className="message-input-footer">
+        <Form.Item name="imageUrl" className="message-image-form-item">
+          <MessageImageField />
+        </Form.Item>
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={submitting}
+          icon={<SendOutlined />}
+          className="message-submit"
+        >
           {submitText}
         </Button>
-      </Space>
+      </div>
     </Form>
   );
 }

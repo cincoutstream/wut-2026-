@@ -7,12 +7,9 @@ import {
 import {
   Avatar,
   Button,
-  Card,
-  Divider,
   Empty,
   Image,
   Popconfirm,
-  Space,
   Tag,
   Typography,
 } from "antd";
@@ -26,106 +23,77 @@ function MessageItem({ item, level = 0, onReply, onDelete }) {
   const mine = currentUser?.id === item.userId;
 
   return (
-    <div
-      style={{
-        marginLeft: level > 0 ? 24 : 0,
-        paddingLeft: level > 0 ? 18 : 0,
-        borderLeft: level > 0 ? "2px solid rgba(15, 118, 110, 0.14)" : "none",
-      }}
-    >
-      <Card
-        size="small"
-        style={{
-          borderRadius: 18,
-          background: level > 0 ? "rgba(248, 250, 252, 0.95)" : "#fff",
-          borderColor: "rgba(15, 118, 110, 0.12)",
-          boxShadow: level > 0 ? "none" : "0 12px 28px rgba(15, 23, 42, 0.06)",
-        }}
-      >
-        <Space direction="vertical" size={12} style={{ width: "100%" }}>
-          <Space align="start" style={{ justifyContent: "space-between", width: "100%" }}>
-            <Space align="start">
-              <Avatar
-                size={level > 0 ? 34 : 42}
-                src={item.user?.avatar || undefined}
-                icon={<UserOutlined />}
-              />
-              <Space direction="vertical" size={2}>
-                <Space wrap>
-                  <Typography.Text strong>
-                    {item.user?.nickname || item.user?.username}
-                  </Typography.Text>
-                  {mine ? <Tag color="green">我的留言</Tag> : null}
-                  {level > 0 ? <Tag>回复</Tag> : null}
-                </Space>
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  {new Date(item.createdAt).toLocaleString()}
-                </Typography.Text>
-              </Space>
-            </Space>
-
-            <Space size={8}>
-              {isLoggedIn() ? (
-                <Button
-                  type={replying ? "default" : "text"}
-                  icon={<SendOutlined />}
-                  onClick={() => setReplying((prev) => !prev)}
-                >
-                  {replying ? "收起" : "回复"}
-                </Button>
-              ) : null}
-              {mine ? (
-                <Popconfirm
-                  title="确认删除这条留言吗？"
-                  okText="删除"
-                  cancelText="取消"
-                  onConfirm={() => onDelete(item.id)}
-                >
-                  <Button danger type="text" icon={<DeleteOutlined />}>
-                    删除
-                  </Button>
-                </Popconfirm>
-              ) : null}
-            </Space>
-          </Space>
-
-          <Typography.Paragraph style={{ marginBottom: 0, whiteSpace: "pre-wrap" }}>
-            {item.content}
-          </Typography.Paragraph>
-          {item.imageUrl ? (
-            <Image
-              src={item.imageUrl}
-              alt="留言图片"
-              width={220}
-              style={{ borderRadius: 8, objectFit: "cover" }}
+    <div className={`message-item${level > 0 ? " is-reply" : ""}`}>
+      <article className="message-bubble">
+        <div className="message-head">
+          <div className="message-author">
+            <Avatar
+              size={level > 0 ? 34 : 40}
+              src={item.user?.avatar || undefined}
+              icon={<UserOutlined />}
             />
-          ) : null}
-
-          {replying ? (
-            <div
-              style={{
-                padding: 14,
-                borderRadius: 14,
-                background: "rgba(15, 118, 110, 0.04)",
-              }}
-            >
-              <MessageInput
-                compact
-                autoFocus
-                submitText="发送回复"
-                placeholder="输入你的回复内容"
-                onSubmit={async (values) => {
-                  await onReply(item.id, values);
-                  setReplying(false);
-                }}
-              />
+            <div>
+              <div className="message-author-name">
+                <Typography.Text strong>
+                  {item.user?.nickname || item.user?.username}
+                </Typography.Text>
+                {mine ? <Tag color="blue">我的留言</Tag> : null}
+                {level > 0 ? <Tag>回复</Tag> : null}
+              </div>
+              <span className="message-time">{new Date(item.createdAt).toLocaleString()}</span>
             </div>
-          ) : null}
-        </Space>
-      </Card>
+          </div>
+
+          <div className="message-actions">
+            {isLoggedIn() ? (
+              <Button
+                type={replying ? "default" : "text"}
+                icon={<SendOutlined />}
+                onClick={() => setReplying((prev) => !prev)}
+              >
+                {replying ? "收起" : "回复"}
+              </Button>
+            ) : null}
+            {mine ? (
+              <Popconfirm
+                title="确认删除这条留言吗？"
+                okText="删除"
+                cancelText="取消"
+                onConfirm={() => onDelete(item.id)}
+              >
+                <Button danger type="text" icon={<DeleteOutlined />}>
+                  删除
+                </Button>
+              </Popconfirm>
+            ) : null}
+          </div>
+        </div>
+
+        <Typography.Paragraph className="message-text">{item.content}</Typography.Paragraph>
+        {item.imageUrl ? (
+          <div className="message-image">
+            <Image src={item.imageUrl} alt="留言图片" className="message-image-img" />
+          </div>
+        ) : null}
+
+        {replying ? (
+          <div className="message-reply-panel">
+            <MessageInput
+              compact
+              autoFocus
+              submitText="发送回复"
+              placeholder="输入你的回复内容"
+              onSubmit={async (values) => {
+                await onReply(item.id, values);
+                setReplying(false);
+              }}
+            />
+          </div>
+        ) : null}
+      </article>
 
       {item.replies?.length ? (
-        <Space direction="vertical" size={12} style={{ width: "100%", marginTop: 12 }}>
+        <div className="message-replies">
           {item.replies.map((reply) => (
             <MessageItem
               key={reply.id}
@@ -135,7 +103,7 @@ function MessageItem({ item, level = 0, onReply, onDelete }) {
               onDelete={onDelete}
             />
           ))}
-        </Space>
+        </div>
       ) : null}
     </div>
   );
@@ -143,21 +111,27 @@ function MessageItem({ item, level = 0, onReply, onDelete }) {
 
 export default function MessageList({ messages, onReply, onDelete }) {
   if (!messages.length) {
-    return <Empty description="还没有留言，快来发第一条吧" />;
+    return (
+      <div className="message-empty">
+        <Empty description="还没有留言，快来发第一条吧" />
+      </div>
+    );
   }
 
   return (
-    <Space direction="vertical" size={16} style={{ width: "100%" }}>
-      <Space align="center">
-        <MessageOutlined style={{ color: "#0f766e" }} />
-        <Typography.Text type="secondary">
-          共 {messages.length} 条主留言，支持楼中楼回复
-        </Typography.Text>
-      </Space>
-      <Divider style={{ margin: 0 }} />
-      {messages.map((item) => (
-        <MessageItem key={item.id} item={item} onReply={onReply} onDelete={onDelete} />
-      ))}
-    </Space>
+    <div className="message-thread">
+      <div className="message-thread-head">
+        <span className="message-thread-head-main">
+          <MessageOutlined />
+          留言讨论
+        </span>
+        <span>共 {messages.length} 条主留言</span>
+      </div>
+      <div className="message-thread-list">
+        {messages.map((item) => (
+          <MessageItem key={item.id} item={item} onReply={onReply} onDelete={onDelete} />
+        ))}
+      </div>
+    </div>
   );
 }

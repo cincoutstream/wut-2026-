@@ -1,4 +1,4 @@
-import { Avatar, Card, Empty, Rate, Space, Tag, Typography } from "antd";
+import { Avatar, Card, Empty, Image, Rate, Space, Tag, Typography } from "antd";
 import { StarFilled, UserOutlined } from "@ant-design/icons";
 
 export default function ReviewList({ reviews }) {
@@ -41,6 +41,14 @@ export default function ReviewList({ reviews }) {
             <Typography.Paragraph style={{ marginBottom: 0, whiteSpace: "pre-wrap" }}>
               {item.content}
             </Typography.Paragraph>
+            {item.imageUrl ? (
+              <Image
+                src={item.imageUrl}
+                alt="评价图片"
+                width={220}
+                style={{ borderRadius: 8, objectFit: "cover" }}
+              />
+            ) : null}
           </Space>
         </Card>
       ))}

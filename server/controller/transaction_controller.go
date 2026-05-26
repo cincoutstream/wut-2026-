@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"strconv"
-
 	"campus-second-hand/server/request"
 	"campus-second-hand/server/response"
 	"campus-second-hand/server/service"
@@ -14,13 +12,16 @@ type TransactionController struct{}
 
 func (t *TransactionController) Create(c *gin.Context) {
 	userID := c.GetUint("userID")
-	productID, _ := strconv.Atoi(c.Param("productId"))
-	var req request.CreateTransactionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, 400, err.Error())
+	productID, ok := parsePositiveID(c, "productId")
+	if !ok {
 		return
 	}
-	transaction, err := service.CreateTransaction(userID, uint(productID), req)
+	var req request.CreateTransactionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, 400, response.ValidationMessage(err))
+		return
+	}
+	transaction, err := service.CreateTransaction(userID, productID, req)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return
@@ -50,8 +51,11 @@ func (t *TransactionController) SellList(c *gin.Context) {
 
 func (t *TransactionController) Accept(c *gin.Context) {
 	userID := c.GetUint("userID")
-	transactionID, _ := strconv.Atoi(c.Param("transactionId"))
-	transaction, err := service.AcceptTransaction(userID, uint(transactionID))
+	transactionID, ok := parsePositiveID(c, "transactionId")
+	if !ok {
+		return
+	}
+	transaction, err := service.AcceptTransaction(userID, transactionID)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return
@@ -61,8 +65,11 @@ func (t *TransactionController) Accept(c *gin.Context) {
 
 func (t *TransactionController) Reject(c *gin.Context) {
 	userID := c.GetUint("userID")
-	transactionID, _ := strconv.Atoi(c.Param("transactionId"))
-	transaction, err := service.RejectTransaction(userID, uint(transactionID))
+	transactionID, ok := parsePositiveID(c, "transactionId")
+	if !ok {
+		return
+	}
+	transaction, err := service.RejectTransaction(userID, transactionID)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return
@@ -72,8 +79,11 @@ func (t *TransactionController) Reject(c *gin.Context) {
 
 func (t *TransactionController) Complete(c *gin.Context) {
 	userID := c.GetUint("userID")
-	transactionID, _ := strconv.Atoi(c.Param("transactionId"))
-	transaction, err := service.CompleteTransaction(userID, uint(transactionID))
+	transactionID, ok := parsePositiveID(c, "transactionId")
+	if !ok {
+		return
+	}
+	transaction, err := service.CompleteTransaction(userID, transactionID)
 	if err != nil {
 		response.Fail(c, 400, err.Error())
 		return
