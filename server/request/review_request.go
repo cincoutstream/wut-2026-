@@ -15,5 +15,7 @@ type UpdateReviewRequest struct {
 type UpdateProfileRequest struct {
 	Nickname string `json:"nickname" binding:"max=50"`
 	Phone    string `json:"phone" binding:"required,len=11,numeric"`
-	Avatar   string `json:"avatar" binding:"max=255"`
+	QQ       string `json:"qq" binding:"max=30"`
+	Wechat   string `json:"wechat" binding:"max=80"`
+	Avatar   string `json:"avatar" binding:"max=500000"`
 }

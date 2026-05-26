@@ -24,7 +24,7 @@ import {
   TrophyOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createMessage, deleteMessage, getMessages, replyMessage } from "../api/message";
 import { getProductDetail } from "../api/product";
@@ -58,7 +58,12 @@ export default function ProductDetail() {
   const [remarkOpen, setRemarkOpen] = useState(false);
   const [transactionSubmitting, setTransactionSubmitting] = useState(false);
 
-  const loadProduct = async () => {
+  const loadMessages = useCallback(async () => {
+    const messageRes = await getMessages(id);
+    setMessagesData(messageRes.data || []);
+  }, [id]);
+
+  const loadProduct = useCallback(async () => {
     setLoading(true);
     try {
       const detailRes = await getProductDetail(id);
@@ -76,11 +81,11 @@ export default function ProductDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     loadProduct();
-  }, [id]);
+  }, [loadProduct]);
 
   if (loading) {
     return <Skeleton active paragraph={{ rows: 8 }} />;
@@ -143,6 +148,12 @@ export default function ProductDetail() {
                 <Typography.Text type="secondary">
                   {product.user?.phone || "暂未填写联系方式"}
                 </Typography.Text>
+                {product.user?.qq ? (
+                  <Typography.Text type="secondary">QQ：{product.user.qq}</Typography.Text>
+                ) : null}
+                {product.user?.wechat ? (
+                  <Typography.Text type="secondary">微信：{product.user.wechat}</Typography.Text>
+                ) : null}
               </Space>
             </Space>
             <Space direction="vertical" align="end" size={2}>
@@ -235,7 +246,7 @@ export default function ProductDetail() {
                   onSubmit={async (values) => {
                     await createMessage(id, values);
                     message.success("留言成功");
-                    loadProduct();
+                    await loadMessages();
                   }}
                   placeholder="例如：这件商品现在还在吗？可以什么时候交易？"
                   submitText="发布留言"
@@ -250,12 +261,12 @@ export default function ProductDetail() {
               onReply={async (messageId, values) => {
                 await replyMessage(id, messageId, values);
                 message.success("回复成功");
-                loadProduct();
+                await loadMessages();
               }}
               onDelete={async (messageId) => {
                 await deleteMessage(messageId);
                 message.success("留言已删除");
-                loadProduct();
+                await loadMessages();
               }}
             />
           </section>

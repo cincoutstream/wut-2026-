@@ -58,6 +58,8 @@ func (a *AuthController) Login(c *gin.Context) {
 			"username": user.Username,
 			"nickname": user.Nickname,
 			"phone":    user.Phone,
+			"qq":       user.QQ,
+			"wechat":   user.Wechat,
 			"avatar":   user.Avatar,
 			"role":     user.Role,
 		},

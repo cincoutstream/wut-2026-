@@ -1,4 +1,4 @@
-import { Button, Descriptions, Empty, Image, Segmented, Space, Tag, Typography, message } from "antd";
+import { Button, Descriptions, Empty, Image, Rate, Segmented, Space, Tag, Typography, message } from "antd";
 import { useEffect, useState } from "react";
 import {
   acceptTransaction,
@@ -6,6 +6,7 @@ import {
   getSellTransactions,
   rejectTransaction,
 } from "../api/transaction";
+import { Link } from "react-router-dom";
 
 const fallbackImage = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f";
 
@@ -71,95 +72,137 @@ export default function SellTransactions() {
           <Segmented value={statusFilter} onChange={setStatusFilter} options={statusOptions} />
           <Typography.Text type="secondary">共 {filteredTransactions.length} 条记录</Typography.Text>
         </div>
-      {!filteredTransactions.length ? (
-        <Empty description="暂时没有收到交易申请" />
-      ) : (
-        <div className="transaction-list">
-          {filteredTransactions.map((item) => {
-            const status = statusMap[item.status] || statusMap.pending;
+        {!filteredTransactions.length ? (
+          <Empty description="暂时没有收到交易申请" />
+        ) : (
+          <div className="transaction-list">
+            {filteredTransactions.map((item) => {
+              const status = statusMap[item.status] || statusMap.pending;
+              const buyerRatingCount = item.buyer?.ratingCount || 0;
+              const buyerRatingAvg = item.buyer?.ratingAvg || 0;
 
-            return (
-              <article
-                key={item.id}
-                className="transaction-item"
-              >
-                <Space align="start" size={16} className="transaction-row">
-                  <Image
-                    src={item.product?.imageUrl || fallbackImage}
-                    alt={item.product?.title}
-                    width={96}
-                    height={96}
-                    className="transaction-thumb"
-                  />
-                  <Space direction="vertical" size={10} className="transaction-main">
-                    <div className="transaction-title-line">
-                      <Typography.Text strong>{item.product?.title}</Typography.Text>
-                      <Tag color={status.color}>{status.text}</Tag>
-                    </div>
-                    <Space wrap>
-                      <Tag>{item.product?.category || "未分类"}</Tag>
-                      {item.product?.price ? <Typography.Text>¥ {item.product.price}</Typography.Text> : null}
-                    </Space>
-                    <Descriptions column={1} size="small" className="transaction-descriptions">
-                      <Descriptions.Item label="买家">
-                        {item.buyer?.nickname || item.buyer?.username}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="买家手机号">
-                        {item.buyer?.phone ? (
-                          <Typography.Text copyable>{item.buyer.phone}</Typography.Text>
-                        ) : (
-                          <Typography.Text type="secondary">买家暂未填写</Typography.Text>
-                        )}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="交易说明">
-                        {item.remark || "无备注"}
-                      </Descriptions.Item>
-                    </Descriptions>
-                    <Space wrap className="transaction-actions">
-                      {item.status === "pending" ? (
-                        <Button
-                          type="primary"
-                          onClick={async () => {
-                            await acceptTransaction(item.id);
-                            message.success("已接受交易");
-                            loadData();
-                          }}
-                        >
-                          接受
-                        </Button>
-                      ) : null}
-                      {item.status === "pending" ? (
-                        <Button
-                          danger
-                          onClick={async () => {
-                            await rejectTransaction(item.id);
-                            message.success("已拒绝交易");
-                            loadData();
-                          }}
-                        >
-                          拒绝
-                        </Button>
-                      ) : null}
-                      {item.status === "accepted" ? (
-                        <Button
-                          type="primary"
-                          onClick={async () => {
-                            await completeTransaction(item.id);
-                            message.success("交易已完成");
-                            loadData();
-                          }}
-                        >
-                          完成交易
-                        </Button>
-                      ) : null}
+              return (
+                <article key={item.id} className="transaction-item">
+                  <Space align="start" size={16} className="transaction-row">
+                    <Image
+                      src={item.product?.imageUrl || fallbackImage}
+                      alt={item.product?.title}
+                      width={96}
+                      height={96}
+                      className="transaction-thumb"
+                    />
+                    <Space direction="vertical" size={10} className="transaction-main">
+                      <div className="transaction-title-line">
+                        <Typography.Text strong>{item.product?.title}</Typography.Text>
+                        <Tag color={status.color}>{status.text}</Tag>
+                      </div>
+                      <Space wrap>
+                        <Tag>{item.product?.category || "未分类"}</Tag>
+                        {item.product?.price ? <Typography.Text>¥ {item.product.price}</Typography.Text> : null}
+                      </Space>
+                      <Descriptions column={1} size="small" className="transaction-descriptions">
+                        <Descriptions.Item label="买家">
+                          {item.buyer?.nickname || item.buyer?.username}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="买家历史评分">
+                          {buyerRatingCount ? (
+                            <Space size={8} wrap>
+                              <Rate disabled allowHalf value={buyerRatingAvg} style={{ fontSize: 14 }} />
+                              <Typography.Text>
+                                {buyerRatingAvg.toFixed(1)} 分 / {buyerRatingCount} 条评价
+                              </Typography.Text>
+                            </Space>
+                          ) : (
+                            <Typography.Text type="secondary">暂无历史评价</Typography.Text>
+                          )}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="买家手机号">
+                          {item.buyer?.phone ? (
+                            <Typography.Text copyable>{item.buyer.phone}</Typography.Text>
+                          ) : (
+                            <Typography.Text type="secondary">买家暂未填写</Typography.Text>
+                          )}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="买家 QQ">
+                          {item.buyer?.qq ? (
+                            <Typography.Text copyable>{item.buyer.qq}</Typography.Text>
+                          ) : (
+                            <Typography.Text type="secondary">暂未填写</Typography.Text>
+                          )}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="买家微信">
+                          {item.buyer?.wechat ? (
+                            <Typography.Text copyable>{item.buyer.wechat}</Typography.Text>
+                          ) : (
+                            <Typography.Text type="secondary">暂未填写</Typography.Text>
+                          )}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="交易说明">
+                          {item.remark || "无备注"}
+                        </Descriptions.Item>
+                      </Descriptions>
+                      <Space wrap className="transaction-actions">
+                        {item.status === "pending" ? (
+                          <Button
+                            type="primary"
+                            onClick={async () => {
+                              await acceptTransaction(item.id);
+                              message.success("已接受交易");
+                              loadData();
+                            }}
+                          >
+                            接受
+                          </Button>
+                        ) : null}
+                        {item.status === "pending" ? (
+                          <Button
+                            danger
+                            onClick={async () => {
+                              await rejectTransaction(item.id);
+                              message.success("已拒绝交易");
+                              loadData();
+                            }}
+                          >
+                            拒绝
+                          </Button>
+                        ) : null}
+                        {item.status === "accepted" ? (
+                          <Button
+                            type="primary"
+                            onClick={async () => {
+                              await completeTransaction(item.id);
+                              message.success("交易已完成");
+                              loadData();
+                            }}
+                          >
+                            完成交易
+                          </Button>
+                        ) : null}
+                        {item.status === "completed" ? (
+                          item.myReview ? (
+                            <>
+                              <Tag color="green">已评价买家 {item.myReview.rating} 分</Tag>
+                              <Button>
+                                <Link to={`/transactions/${item.id}/review`}>修改评价</Link>
+                              </Button>
+                            </>
+                          ) : (
+                            <Button>
+                              <Link to={`/transactions/${item.id}/review`}>评价买家</Link>
+                            </Button>
+                          )
+                        ) : null}
+                        {item.status === "completed" && item.peerReview ? (
+                          <Tag color="blue">买家已评价你</Tag>
+                        ) : null}
+                      </Space>
                     </Space>
                   </Space>
-                </Space>
-              </article>
-            );
-          })}
-        </div>
-      )}
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
     </div>
   );

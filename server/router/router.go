@@ -23,6 +23,7 @@ func Setup(cfg *config.AppConfig) *gin.Engine {
 	transactionController := &controller.TransactionController{}
 	messageController := &controller.MessageController{}
 	reviewController := &controller.ReviewController{}
+	notificationController := &controller.NotificationController{}
 
 	api := r.Group("/api")
 	{
@@ -63,6 +64,11 @@ func Setup(cfg *config.AppConfig) *gin.Engine {
 
 		authAPI.POST("/transactions/:transactionId/reviews", reviewController.Create)
 		authAPI.PUT("/reviews/:reviewId", reviewController.Update)
+
+		authAPI.GET("/notifications", notificationController.List)
+		authAPI.GET("/notifications/unread-count", notificationController.Count)
+		authAPI.PUT("/notifications/:notificationId/read", notificationController.MarkRead)
+		authAPI.PUT("/notifications/read-all", notificationController.MarkAllRead)
 	}
 
 	return r

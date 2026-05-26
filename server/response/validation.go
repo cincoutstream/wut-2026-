@@ -56,7 +56,9 @@ var validationMessages = map[string]string{
 	"UpdateProfileRequest.Phone.required":      "请输入手机号",
 	"UpdateProfileRequest.Phone.len":           "请输入 11 位手机号",
 	"UpdateProfileRequest.Phone.numeric":       "手机号只能包含数字",
-	"UpdateProfileRequest.Avatar.max":          "头像地址不能超过 255 个字符",
+	"UpdateProfileRequest.QQ.max":              "QQ 号不能超过 30 个字符",
+	"UpdateProfileRequest.Wechat.max":          "微信号不能超过 80 个字符",
+	"UpdateProfileRequest.Avatar.max":          "头像图片过大，请压缩后重试",
 }
 
 func ValidationMessage(err error) string {

@@ -1,10 +1,13 @@
-import { Avatar, Button, Card, Form, Input, Space, Typography, message } from "antd";
+import { Button, Card, Form, Input, Space, Typography, message } from "antd";
 import { useEffect } from "react";
 import { getProfile, updateProfile } from "../api/user";
+import AvatarField from "../components/AvatarField";
 import { setAuth, getToken } from "../utils/auth";
 
 export default function Profile() {
   const [form] = Form.useForm();
+  const nickname = Form.useWatch("nickname", form);
+  const username = Form.useWatch("username", form);
 
   useEffect(() => {
     (async () => {
@@ -25,9 +28,6 @@ export default function Profile() {
         <Typography.Title level={2} style={{ margin: 0 }}>
           个人信息
         </Typography.Title>
-        <Avatar size={72} src={form.getFieldValue("avatar")}>
-          {form.getFieldValue("nickname")?.[0] || form.getFieldValue("username")?.[0]}
-        </Avatar>
         <Form layout="vertical" form={form} onFinish={onFinish}>
           <Form.Item label="用户名" name="username">
             <Input disabled />
@@ -45,8 +45,14 @@ export default function Profile() {
           >
             <Input />
           </Form.Item>
-          <Form.Item label="头像地址" name="avatar">
-            <Input />
+          <Form.Item label="QQ" name="qq" rules={[{ max: 30, message: "QQ 号不能超过 30 个字符" }]}>
+            <Input placeholder="可选，方便交易双方联系" />
+          </Form.Item>
+          <Form.Item label="微信" name="wechat" rules={[{ max: 80, message: "微信号不能超过 80 个字符" }]}>
+            <Input placeholder="可选，填写后会展示给交易对方" />
+          </Form.Item>
+          <Form.Item label="头像" name="avatar">
+            <AvatarField fallbackText={nickname?.[0] || username?.[0]} />
           </Form.Item>
           <Button type="primary" htmlType="submit">
             保存信息

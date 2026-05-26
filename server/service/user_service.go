@@ -25,6 +25,8 @@ func UpdateProfile(userID uint, req request.UpdateProfileRequest) (*model.User, 
 
 	user.Nickname = req.Nickname
 	user.Phone = strings.TrimSpace(req.Phone)
+	user.QQ = strings.TrimSpace(req.QQ)
+	user.Wechat = strings.TrimSpace(req.Wechat)
 	user.Avatar = req.Avatar
 
 	if err := database.DB.Save(user).Error; err != nil {

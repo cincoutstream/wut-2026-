@@ -173,6 +173,117 @@ textarea {
   font-weight: 650;
 }
 
+.notification-trigger.ant-btn {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-trigger .ant-badge {
+  line-height: 1;
+}
+
+.notification-trigger .anticon {
+  color: var(--primary);
+  font-size: 16px;
+}
+
+.notification-popover .ant-popover-inner {
+  padding: 0;
+  overflow: hidden;
+}
+
+.notification-panel {
+  width: min(390px, calc(100vw - 32px));
+  background: var(--surface);
+}
+
+.notification-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+}
+
+.notification-panel-head > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.notification-empty {
+  padding: 24px 10px;
+}
+
+.notification-list {
+  max-height: 430px;
+  overflow-y: auto;
+  display: grid;
+}
+
+.notification-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 11px;
+  padding: 13px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.notification-item:hover {
+  background: var(--surface-soft);
+}
+
+.notification-item.is-unread {
+  background: var(--primary-soft);
+}
+
+.notification-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--primary);
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+}
+
+.notification-body {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.notification-title-line {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.notification-title-line .ant-typography {
+  color: var(--text-strong);
+}
+
+.notification-body .ant-typography-secondary {
+  line-height: 1.55;
+  white-space: normal;
+}
+
+.notification-time.ant-typography {
+  font-size: 12px;
+  color: var(--muted-2);
+}
+
 .app-content {
   width: min(1320px, 100%);
   margin: 0 auto;
@@ -1396,6 +1507,34 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
+}
+
+.avatar-field {
+  width: 100%;
+}
+
+.avatar-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.avatar-preview-row > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.avatar-preview-row .ant-typography-secondary {
+  line-height: 1.6;
+}
+
+.avatar-uploader .ant-upload-drag {
+  border-radius: 8px !important;
 }
 
 @media (max-width: 1100px) {

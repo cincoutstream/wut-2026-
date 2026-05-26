@@ -13,15 +13,17 @@ const (
 )
 
 type Transaction struct {
-	ID        uint              `json:"id" gorm:"primaryKey"`
-	ProductID uint              `json:"productId" gorm:"not null;index"`
-	Product   Product           `json:"product"`
-	BuyerID   uint              `json:"buyerId" gorm:"not null;index"`
-	Buyer     User              `json:"buyer"`
-	SellerID  uint              `json:"sellerId" gorm:"not null;index"`
-	Seller    User              `json:"seller"`
-	Remark    string            `json:"remark" gorm:"type:text"`
-	Status    TransactionStatus `json:"status" gorm:"size:20;default:pending"`
-	CreatedAt time.Time         `json:"createdAt"`
-	UpdatedAt time.Time         `json:"updatedAt"`
+	ID         uint              `json:"id" gorm:"primaryKey"`
+	ProductID  uint              `json:"productId" gorm:"not null;index"`
+	Product    Product           `json:"product"`
+	BuyerID    uint              `json:"buyerId" gorm:"not null;index"`
+	Buyer      User              `json:"buyer"`
+	SellerID   uint              `json:"sellerId" gorm:"not null;index"`
+	Seller     User              `json:"seller"`
+	Remark     string            `json:"remark" gorm:"type:text"`
+	Status     TransactionStatus `json:"status" gorm:"size:20;default:pending"`
+	MyReview   *Review           `json:"myReview,omitempty" gorm:"-"`
+	PeerReview *Review           `json:"peerReview,omitempty" gorm:"-"`
+	CreatedAt  time.Time         `json:"createdAt"`
+	UpdatedAt  time.Time         `json:"updatedAt"`
 }

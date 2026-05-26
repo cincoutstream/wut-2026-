@@ -11,6 +11,7 @@ import {
 import { Button, Layout, Menu, Space, Typography } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { clearAuth, getUser, isLoggedIn } from "../utils/auth";
+import NotificationBell from "./NotificationBell";
 
 const { Header, Content } = Layout;
 
@@ -63,6 +64,7 @@ export default function AppLayout() {
           <Space className="header-actions">
             {loggedIn ? (
               <>
+                <NotificationBell />
                 <span className="user-pill">
                   <UserOutlined />
                   <span>{user?.nickname || user?.username}</span>

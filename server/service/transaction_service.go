@@ -51,7 +51,12 @@ func CreateTransaction(userID, productID uint, req request.CreateTransactionRequ
 	if err := database.DB.Create(transaction).Error; err != nil {
 		return nil, err
 	}
-	return GetTransactionByID(transaction.ID)
+	createdTransaction, err := GetTransactionByID(transaction.ID)
+	if err != nil {
+		return nil, err
+	}
+	_ = NotifyTransactionCreated(createdTransaction)
+	return createdTransaction, nil
 }
 
 func GetTransactionByID(id uint) (*model.Transaction, error) {
@@ -67,14 +72,124 @@ func GetTransactionByID(id uint) (*model.Transaction, error) {
 
 func ListBuyTransactions(userID uint) ([]model.Transaction, error) {
 	var transactions []model.Transaction
-	err := database.DB.Preload("Product").Preload("Seller").Where("buyer_id = ?", userID).Order("created_at desc").Find(&transactions).Error
-	return transactions, err
+	err := database.DB.Preload("Product").Preload("Buyer").Preload("Seller").Where("buyer_id = ?", userID).Order("created_at desc").Find(&transactions).Error
+	if err != nil {
+		return nil, err
+	}
+	transactions, err = attachReviewStatus(transactions, userID)
+	if err != nil {
+		return nil, err
+	}
+	return attachTransactionUserRatings(transactions)
 }
 
 func ListSellTransactions(userID uint) ([]model.Transaction, error) {
 	var transactions []model.Transaction
-	err := database.DB.Preload("Product").Preload("Buyer").Where("seller_id = ?", userID).Order("created_at desc").Find(&transactions).Error
-	return transactions, err
+	err := database.DB.Preload("Product").Preload("Buyer").Preload("Seller").Where("seller_id = ?", userID).Order("created_at desc").Find(&transactions).Error
+	if err != nil {
+		return nil, err
+	}
+	transactions, err = attachReviewStatus(transactions, userID)
+	if err != nil {
+		return nil, err
+	}
+	return attachTransactionUserRatings(transactions)
+}
+
+func attachReviewStatus(transactions []model.Transaction, userID uint) ([]model.Transaction, error) {
+	if len(transactions) == 0 {
+		return transactions, nil
+	}
+
+	transactionIDs := make([]uint, 0, len(transactions))
+	for _, transaction := range transactions {
+		transactionIDs = append(transactionIDs, transaction.ID)
+	}
+
+	var reviews []model.Review
+	if err := database.DB.
+		Preload("Reviewer").
+		Preload("TargetUser").
+		Where("transaction_id IN ?", transactionIDs).
+		Find(&reviews).Error; err != nil {
+		return nil, err
+	}
+
+	for index := range transactions {
+		for reviewIndex := range reviews {
+			review := reviews[reviewIndex]
+			if review.TransactionID != transactions[index].ID {
+				continue
+			}
+			if review.ReviewerID == userID {
+				transactions[index].MyReview = &reviews[reviewIndex]
+			} else {
+				transactions[index].PeerReview = &reviews[reviewIndex]
+			}
+		}
+	}
+
+	return transactions, nil
+}
+
+func attachTransactionUserRatings(transactions []model.Transaction) ([]model.Transaction, error) {
+	if len(transactions) == 0 {
+		return transactions, nil
+	}
+
+	userIDSet := make(map[uint]struct{})
+	userIDs := make([]uint, 0, len(transactions)*2)
+	addUserID := func(id uint) {
+		if id == 0 {
+			return
+		}
+		if _, ok := userIDSet[id]; ok {
+			return
+		}
+		userIDSet[id] = struct{}{}
+		userIDs = append(userIDs, id)
+	}
+
+	for _, transaction := range transactions {
+		addUserID(transaction.Buyer.ID)
+		addUserID(transaction.Seller.ID)
+	}
+	if len(userIDs) == 0 {
+		return transactions, nil
+	}
+
+	type ratingStat struct {
+		UserID uint
+		Avg    float64
+		Count  int64
+	}
+
+	var stats []ratingStat
+	if err := database.DB.Model(&model.Review{}).
+		Select("target_user_id AS user_id, COALESCE(AVG(rating), 0) AS avg, COUNT(*) AS count").
+		Where("target_user_id IN ?", userIDs).
+		Group("target_user_id").
+		Scan(&stats).Error; err != nil {
+		return nil, err
+	}
+
+	statMap := make(map[uint]ratingStat, len(stats))
+	for _, stat := range stats {
+		statMap[stat.UserID] = stat
+	}
+
+	for index := range transactions {
+		if stat, ok := statMap[transactions[index].Buyer.ID]; ok {
+			transactions[index].Buyer.RatingAvg = stat.Avg
+			transactions[index].Buyer.RatingCount = stat.Count
+		}
+		if stat, ok := statMap[transactions[index].Seller.ID]; ok {
+			transactions[index].Seller.RatingAvg = stat.Avg
+			transactions[index].Seller.RatingCount = stat.Count
+		}
+	}
+
+	return transactions, nil
 }
 
 func AcceptTransaction(userID, transactionID uint) (*model.Transaction, error) {
@@ -89,7 +204,12 @@ func AcceptTransaction(userID, transactionID uint) (*model.Transaction, error) {
 		return nil, errors.New("当前交易状态不可接受")
 	}
 
-	return updateTransactionStatus(transaction, model.TransactionAccepted, model.ProductStatusTrading)
+	updatedTransaction, err := updateTransactionStatus(transaction, model.TransactionAccepted, model.ProductStatusTrading)
+	if err != nil {
+		return nil, err
+	}
+	_ = NotifyTransactionStatusChanged(updatedTransaction, userID, model.NotificationTransactionAccepted)
+	return updatedTransaction, nil
 }
 
 func RejectTransaction(userID, transactionID uint) (*model.Transaction, error) {
@@ -113,7 +233,12 @@ func RejectTransaction(userID, transactionID uint) (*model.Transaction, error) {
 	if err := tx.Commit().Error; err != nil {
 		return nil, err
 	}
-	return GetTransactionByID(transaction.ID)
+	updatedTransaction, err := GetTransactionByID(transaction.ID)
+	if err != nil {
+		return nil, err
+	}
+	_ = NotifyTransactionStatusChanged(updatedTransaction, userID, model.NotificationTransactionRejected)
+	return updatedTransaction, nil
 }
 
 func CompleteTransaction(userID, transactionID uint) (*model.Transaction, error) {
@@ -128,7 +253,12 @@ func CompleteTransaction(userID, transactionID uint) (*model.Transaction, error)
 		return nil, errors.New("当前交易状态不可完成")
 	}
 
-	return updateTransactionStatus(transaction, model.TransactionCompleted, model.ProductStatusSold)
+	updatedTransaction, err := updateTransactionStatus(transaction, model.TransactionCompleted, model.ProductStatusSold)
+	if err != nil {
+		return nil, err
+	}
+	_ = NotifyTransactionStatusChanged(updatedTransaction, userID, model.NotificationTransactionCompleted)
+	return updatedTransaction, nil
 }
 
 func updateTransactionStatus(transaction *model.Transaction, tStatus model.TransactionStatus, pStatus model.ProductStatus) (*model.Transaction, error) {

@@ -20,13 +20,14 @@ request.interceptors.response.use(
   (error) => {
     const status = error?.response?.status;
     const msg = error?.response?.data?.message || "请求失败，请稍后重试";
+    const silentError = error?.config?.silentError;
     if (status === 401) {
       clearAuth();
       if (window.location.pathname !== "/login") {
         message.warning("登录状态已失效，请重新登录");
         window.location.href = "/login";
       }
-    } else {
+    } else if (!silentError) {
       message.error(msg);
     }
     return Promise.reject(error);

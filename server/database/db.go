@@ -50,11 +50,30 @@ func Init(cfg *config.AppConfig) error {
 		&model.Transaction{},
 		&model.Message{},
 		&model.Review{},
+		&model.Notification{},
 	); err != nil {
 		return err
 	}
 
+	if err := migrateColumnTypes(cfg); err != nil {
+		return err
+	}
+
 	return seed()
+}
+
+func migrateColumnTypes(cfg *config.AppConfig) error {
+	if cfg.MySQL.Driver != "mysql" {
+		return nil
+	}
+
+	if err := DB.Migrator().AlterColumn(&model.User{}, "Avatar"); err != nil {
+		return err
+	}
+	if err := DB.Migrator().AlterColumn(&model.User{}, "QQ"); err != nil {
+		return err
+	}
+	return DB.Migrator().AlterColumn(&model.User{}, "Wechat")
 }
 
 func seed() error {
